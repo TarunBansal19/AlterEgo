@@ -1,4 +1,4 @@
-# ALTEREGO AI Avatar Branding API - Backend
+# AlterEgo AI-powered platform Backend
 
 ## Overview
 
