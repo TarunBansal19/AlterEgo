@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 # Load backend .env
 load_dotenv()
 
-# Load frontend .env if it exists
-frontend_env = Path(__file__).parent.parent / "frontend" / "alterego" / ".env"
+# Load frontend .env for shared Supabase vars (VITE_*)
+frontend_env = Path(__file__).parent.parent / "frontend" / ".env"
 if frontend_env.exists():
     load_dotenv(dotenv_path=frontend_env)
 
