@@ -46,6 +46,7 @@ class JobResponse(BaseModel):
     headshot_url: str | None    # Can be None if deleted after 24h
     headshot_deleted: bool
     status: str
+    created_at: str
     avatars: list[AvatarResponse]
 
 # Helper function specifically for SSE authentication via query params
@@ -169,6 +170,7 @@ def get_user_jobs(
                 headshot_url=job.headshot_url,
                 headshot_deleted=job.headshot_deleted,
                 status=job.status,
+                created_at=job.created_at.isoformat(),
                 avatars=avatar_responses
             )
         )
@@ -208,6 +210,7 @@ def get_job(
         headshot_url=job.headshot_url,
         headshot_deleted=job.headshot_deleted,
         status=job.status,
+        created_at=job.created_at.isoformat(),
         avatars=avatar_responses
     )
 
