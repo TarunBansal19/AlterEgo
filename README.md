@@ -1,4 +1,4 @@
-# Fast Backend
+# ALTEREGO AI Avatar Branding API - Backend
 
 ## Overview
 
