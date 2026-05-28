@@ -9,6 +9,7 @@ def upload_file(file_bytes: bytes, file_name: str, folder: str , content_type: s
         file = (file_name, file_bytes, content_type),
         file_name=file_name,
         folder = folder,
+        public_key=IMAGEKIT_PUBLIC_KEY,
         is_private_file= False,
         use_unique_file_name=True
     )

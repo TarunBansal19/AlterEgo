@@ -4,8 +4,8 @@ import logging
 from sqlmodel import Session, select
 from database import engine
 from models import Job, Avatar
-from services.openai_service import generate_Avatar
-from services.imagekit_service import upload_file, get_variants
+from services.image_service import generate_Avatar
+from services.imagekit_service import upload_file
 
 logger = logging.getLogger(__name__) 
 

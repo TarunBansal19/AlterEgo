@@ -1,8 +1,6 @@
-import os
 import logging
 import asyncio
 import json
-import jwt
 
 from fastapi import APIRouter , HTTPException , Depends , UploadFile , File , Query
 from sqlmodel import Session , select
@@ -14,7 +12,6 @@ from models import Job , Avatar
 from services.auth import get_current_user, CurrentUser, decode_supabase_token
 from services.generator import process_jobs, STYLES
 from services.imagekit_service import get_variants , upload_file
-from config import SUPABASE_JWT_SECRET
 
 logger = logging.getLogger(__name__) 
 
@@ -49,6 +46,10 @@ class JobResponse(BaseModel):
     created_at: str
     avatars: list[AvatarResponse]
 
+class StyleResponse(BaseModel):
+    id: str
+    label: str
+
 # Helper function specifically for SSE authentication via query params
 def verify_sse_token(token: str) -> str:
     try:
@@ -60,7 +61,6 @@ def verify_sse_token(token: str) -> str:
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Unauthorized: {str(e)}")
 
-# Endpoints
 
 @router.post("/upload-headshot")
 async def upload_headshot(
@@ -76,6 +76,18 @@ async def upload_headshot(
     )
     return {"url": url, "file_id": file_id}
 
+@router.get("/styles", response_model=list[StyleResponse])
+def get_styles():
+    labels = {
+        "professional_founder": "Founder",
+        "anime_hero": "Anime Hero",
+        "cyberpunk_hacker": "Cyberpunk",
+        "gaming_streamer": "Streamer",
+        "cinematic_celebrity": "Celebrity",
+        "luxury_ceo": "Luxury CEO",
+    }
+    return [StyleResponse(id=style_id, label=labels.get(style_id, style_id)) for style_id in STYLES]
+
 @router.post("/job", response_model=CreateJobResponse)
 async def create_job(
     request: CreateJobRequest, 
@@ -90,26 +102,6 @@ async def create_job(
         if style not in STYLES:
             raise HTTPException(status_code=400, detail=f"Invalid style: {style}")
 
-    # Enforce Free Tier limitations
-    if current_user.tier == "free":
-        # 1. Limit to a maximum of 3 styles in the job
-        if len(request.selected_styles) > 3:
-            raise HTTPException(
-                status_code=403, 
-                detail="Free tier is limited to selecting at most 3 styles. Upgrade to Premium for more!"
-            )
-            
-        # 2. Check if they have already created a job in the database
-        existing_job = session.exec(
-            select(Job).where(Job.user_id == current_user.user_id)
-        ).first()
-        
-        if existing_job is not None:
-            raise HTTPException(
-                status_code=403, 
-                detail="You have already used your 1 free generation. Please upgrade to the Premium plan for unlimited generations!"
-            )
-            
     job = Job(
         user_id=current_user.user_id,
         prompt=request.prompt,
@@ -213,6 +205,24 @@ def get_job(
         created_at=job.created_at.isoformat(),
         avatars=avatar_responses
     )
+
+@router.delete("/avatars/{avatar_id}")
+def delete_avatar(
+    avatar_id: str,
+    session: Session = Depends(get_session),
+    current_user: CurrentUser = Depends(get_current_user)
+):
+    avatar = session.get(Avatar, avatar_id)
+    if not avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    job = session.get(Job, avatar.job_id)
+    if not job or job.user_id != current_user.user_id:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+
+    session.delete(avatar)
+    session.commit()
+    return {"ok": True}
 
 @router.get("/jobs/{job_id}/stream")
 async def stream_job(
