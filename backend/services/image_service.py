@@ -4,7 +4,6 @@ from config import REPLICATE_API_TOKEN
 
 client = replicate.Client(api_token=REPLICATE_API_TOKEN)
 
-
 async def generate_Avatar(
     prompt: str,
     style_prompt: str,
@@ -21,7 +20,8 @@ async def generate_Avatar(
     Use the reference image as the primary identity source.
     """
 
-    output = client.run(
+
+    output = await client.async_run(
         "black-forest-labs/flux-kontext-pro",
         input={
             "prompt": full_prompt,
@@ -32,7 +32,9 @@ async def generate_Avatar(
             "prompt_upsampling": False
         }
     )
-
+    if not output:
+        raise RuntimeError(f"Replicate returned empty output: {repr(output)}")
+    
     if isinstance(output, list):
         output = output[0]
 
