@@ -1,32 +1,36 @@
 # AlterEgo Frontend
 
-TanStack Start + React UI for the AlterEgo avatar studio.
+React/Vite frontend for the AlterEgo avatar generator.
 
-## Environment
+## Setup
 
-Create `frontend/.env`:
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Required `.env` values:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=...
 ```
 
-Optional for SSR/server routes:
-
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_PUBLISHABLE_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
-
-## Commands
+## Scripts
 
 ```bash
-npm install
-npm run dev      # http://localhost:5173
+npm run dev
 npm run build
-npm run preview
+npm run lint
 ```
 
-The dev server must run on port **5173** (configured in `vite.config.ts`) so the FastAPI CORS policy accepts browser requests.
+## Main Flow
+
+1. Sign in or create an account with Supabase email/password auth.
+2. Upload a headshot.
+3. Pick up to three avatar styles.
+4. Create a generation job.
+5. Watch updates over SSE.
+6. Download the original image or ImageKit variants from the gallery.
