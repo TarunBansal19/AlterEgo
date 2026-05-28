@@ -114,12 +114,16 @@ async def process_jobs(job_id: str):
         ).all()
         Avatars_ids = [a.id for a in Avatars]
 
-        tasks = [
-                generate_single_Avatar(aid , prompt , headshot_url)
-                for aid in Avatars_ids
-        ]
+        # tasks = [
+        #         generate_single_Avatar(aid , prompt , headshot_url)
+        #         for aid in Avatars_ids
+        # ]
 
-        await asyncio.gather(*tasks , return_exceptions=True) #runs alll fo generate_single_Avatar concurrently and waits for all of them to finish
+        # await asyncio.gather(*tasks , return_exceptions=True) #runs alll fo generate_single_Avatar concurrently and waits for all of them to finish
+        #Replicate free tier allows one request at a time so we have to run them sequentially
+
+        for aid in Avatars_ids: #Generate Avatars sequentially to avoid hitting rate limits on Replicate
+            await generate_single_Avatar(aid, prompt, headshot_url)
 
         with Session(engine) as session:
             job = session.get(Job , job_id)
